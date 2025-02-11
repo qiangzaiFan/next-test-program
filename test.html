@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>日出动画</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+
+      let sunY = canvas.height // 太阳初始在下面
+      const sunRadius = 50
+      const animationDuration = 10000 // 太阳升起的总时间（毫秒）
+      let startTime
+
+      function drawSky() {
+        const elapsed = (Date.now() - startTime) / animationDuration
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
+        gradient.addColorStop(0, `rgba(255, 204, 0, 1)`) // 天空顶部颜色
+        gradient.addColorStop(0.5, `rgba(135, 206, 235, 1)`) // 夕阳过渡颜色
+        gradient.addColorStop(1, `rgba(0, 102, 204, 1)`) // 水面颜色
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+      }
+
+      function drawOcean() {
+        const oceanGradient = ctx.createLinearGradient(0, canvas.height * 0.5, 0, canvas.height)
+        oceanGradient.addColorStop(0, `rgba(0, 51, 102, ${0.6 - (sunY / canvas.height) * 0.5})`) // 底部颜色，随着太阳升起而变浅
+        oceanGradient.addColorStop(1, `rgba(0, 102, 204, ${1 - sunY / canvas.height})`) // 透明度变化
+        ctx.fillStyle = oceanGradient
+        ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5)
+      }
+
+      function drawSun() {
+        ctx.beginPath()
+        ctx.arc(canvas.width / 2, sunY, sunRadius, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(255, 204, 0, 1)' // 太阳颜色
+        ctx.fill()
+        ctx.closePath()
+      }
+
+      function animate() {
+        const currentTime = Date.now()
+
+        // 如果动画还在进行，更新太阳位置
+        if (!startTime) {
+          startTime = currentTime // 记录开始时间
+        }
+
+        const elapsed = currentTime - startTime
+        if (elapsed <= animationDuration) {
+          sunY = canvas.height - canvas.height * (elapsed / animationDuration) // 计算太阳的 Y 坐标
+        } else {
+          sunY = canvas.height - sunRadius // 完成后固定太阳位置
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        drawSky()
+        drawOcean()
+        drawSun()
+
+        requestAnimationFrame(animate)
+      }
+
+      animate() // 开始动画
+    </script>
+  </body>
+</html>
